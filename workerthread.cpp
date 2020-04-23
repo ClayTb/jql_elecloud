@@ -7,28 +7,34 @@ string MAC;
 int setup()
 {
 	MAC = getMac();
+    //string hostname = exec("hostname");
 	if(macOK(MAC) != 5)
 	{
 		log(3, "mac 错误");
 		return 1;
 	}
+    //"cmd/IotApp/fa:04:39:46:16:2b/+/+/+/#"
+    //string CMD = "cmd/IotApp/";
+    CCMD = CCMD + MAC +"/+/+/+/#";
+    cout << "云端cmd topic" << CCMD << endl;
+    //cmd_resp/:ProductName/:DeviceName/:CommandName/:RequestID/:MessageID
+    CRSP = CRSP + MAC +"/";
     //2. 建立处理云端数据线程cmd
-    //thread (cloudThread).detach();
+    thread (cloudThread).detach();
     //3. 消耗处理state消息，发给云端
     thread (localStateThread).detach();
 	//处理消耗cmd rsp消息，发给云端
-    //thread (localRspThread).detach();
+    thread (localRspThread).detach();
     return 0;
 }
 
 //把云端的命令下发下去
-/*
 int cloudThread()
 {
     //数据pop出来
     cout<<"send cloud cmd thread\n";
     log(6,"send cloud cmd thread");
-    string data, topic;
+    string data, ldata;
     int ret = -1;
     while(1) 
     {                       
@@ -36,13 +42,13 @@ int cloudThread()
         {
 
             data = local_q.pop();
-            topic = "upload_data/IotApp/"+MAC+"/sample/"+randomstring(26);
-            ret = mqtt_send(mosq_l, topic, data.c_str());
+            //转换为本地json格式
+            ldata = parseCloud(data);
+            ret = mqtt_send(mosq_l, LCMD, ldata.c_str());
             if(ret != 0)
             {
                 log(4, "mqtt_send error=%i\n", ret);
             }
-           
         }
         else
         {
@@ -52,7 +58,7 @@ int cloudThread()
     }
     return 1;
 }
-*/
+
 
 //发送电梯状态线程
 int localStateThread()
@@ -87,22 +93,24 @@ int localStateThread()
 }
 
 //发送电梯回复指令线程
-/*
+
 int localRspThread()
 {
 	//数据pop出来
     cout<<"send rsp msg thread\n";
     log(6,"send rsp msg thread");
-    std::string data;
+    std::string data, topic;
     int ret = -1;
     //数据pop出来，转换成云端数据
     while(1) 
     {                       
         if(connected_c == 1 && !cloud_rsp_q.queue_.empty())
         {
-
+            //cmd_resp/:ProductName/:DeviceName/:CommandName/:RequestID/:MessageID
+            topic = CRSP+randomstring(26)+"/"+randomstring(10);
+            cout << topic << endl;
             data = cloud_rsp_q.pop();
-            ret = mqtt_send(mosq_c, cloud_topic.find("rsp")->second,data.c_str());
+            ret = mqtt_send(mosq_c, topic,data.c_str());
             if(ret != 0)
             {
                 log(4, "mqtt_send error=%i\n", ret);
@@ -116,7 +124,13 @@ int localRspThread()
 
     }
     return 0;
-}*/
+}
+
+//将cloud的数据变成本地的json数据
+string parseCloud(string data)
+{
+    return NULL;
+}
 
 #if 0
 int reportErr(Json::Value rsp)

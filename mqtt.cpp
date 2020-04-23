@@ -47,6 +47,9 @@ int mqtt_send(struct mosquitto *mosq, string topic, const char *msg){
 /***本地mqtt部分***/
 struct mosquitto *mosq_l = NULL;
 int connected_l = 0;
+const char* LCMD = "/cti/ele/cmd";
+const char* LRSP = "/cti/ele/cmd-rsp";
+const char* LSTATE = "/cti/ele/state";
 
 void local_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
 {
@@ -56,11 +59,11 @@ void local_callback(struct mosquitto *mosq, void *userdata, const struct mosquit
         //log(0,"recv %s: ", (char *)message->payload);
         std::string data = static_cast<char*>(message->payload);
         //放入云端队列，由云端线程处理 
-        if(strcmp(message->topic,"/cti/ele/state") == 0)
+        if(strcmp(message->topic, LSTATE) == 0)
         {
             cloud_state_q.push(data);
         }
-        else if(strcmp(message->topic,"/cti/ele/cmd-rsp") == 0)
+        else if(strcmp(message->topic, LRSP) == 0)
         {
             cloud_rsp_q.push(data);
         }
@@ -86,8 +89,8 @@ void local_connect_callback(struct mosquitto *mosq, void *userdata, int result)
         //这里订阅本地的cmd命令，2的意思Qos，0 表示This is the fastest method and requires only 1 message. 
         //It is also the most unreliable transfer mode.
         //订阅状态以及命令的回复
-		mosquitto_subscribe(mosq, NULL, topic.find("state")->second.c_str(), 0);
-        mosquitto_subscribe(mosq, NULL, topic.find("response")->second.c_str(), 0);
+		mosquitto_subscribe(mosq, NULL, LSTATE, 0);
+        mosquitto_subscribe(mosq, NULL, LRSP, 0);
 
 	}else{
 		fprintf(stderr, "local Connect failed\n");
@@ -148,12 +151,10 @@ void cloud_message_callback(struct mosquitto *mosq, void *userdata, const struct
         //放入本地处理队列，由本地线程处理 
         string::size_type idx;
         //订阅的时候已经加上mac了，所以这里再判断一次可以不需要
-        /*
-        idx=message->topic.find(MAC);
-        if(idx != string::npos )
+        if(strstr(message->topic, MAC.c_str()) != NULL)//在a中查找b，如果不存在，这是C语言风格
         {
             local_q.push(data);
-        }*/
+        }
 
     }else{
         log(4, "message %s (null)\n", message->topic);
@@ -161,13 +162,18 @@ void cloud_message_callback(struct mosquitto *mosq, void *userdata, const struct
 }
 
 //这里去订阅楼层信息
+/*
 std::map<string, string> cloud_topic = {
     //{ "state", "upload_data/IotApp/fa:04:39:46:16:2b/sample/5e9d86a893c2a0bf5069ffe888" },
     { "state", "upload_data/IotApp/" },
     //{ "cmd", "cmd/IotApp/fa:04:39:46:16:2b/+/+/+/#"}, 
     { "cmd", "cmd/IotApp/"}, 
+};*/
+string CSTATE = "upload_data/IotApp/";
+string CCMD = "cmd/IotApp/";
+//cmd_resp/:ProductName/:DeviceName/:CommandName/:RequestID/:MessageID
+string CRSP = "cmd_resp/IotApp/";
 
-};
 void cloud_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
     if(!result){
@@ -175,9 +181,14 @@ void cloud_connect_callback(struct mosquitto *mosq, void *userdata, int result)
         //这里订阅本地的cmd命令，2的意思Qos，0 表示This is the fastest method and requires only 1 message. 
         //It is also the most unreliable transfer mode.
         //订阅云端命令
-        //mosquitto_subscribe(mosq, NULL, cloud_topic.find("cmd")->second.c_str(), 0);
+        mosquitto_subscribe(mosq, NULL, CCMD.c_str(), 0);
     }else{
         fprintf(stderr, "cloud Connect failed\n");
+       
+//MOSQ_ERR_SUCCESS    on success.
+//MOSQ_ERR_INVAL  if the input parameters were invalid.
+//MOSQ_ERR_ERRNO  if a system call returned an error.  The variable errno contains the error code, even on Windows.  Use strerror_r() where available or FormatMessage() on Windows.
+
     }
 }
 //和云端通信
