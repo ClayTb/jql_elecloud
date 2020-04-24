@@ -27,9 +27,12 @@ void mosq_log_callback(struct mosquitto *mosq, void *userdata, int level, const 
 //订阅成功后的callback
 void my_subscribe_callback(struct mosquitto *mosq, void *userdata, int mid, int qos_count, const int *granted_qos)
 {
+    //Subscribed (mid: 1): 0 1
+//Subscribed (mid: 2): 0 1
+//Subscribed (mid: 1): 128 1
     int i;
-    printf("Subscribed (mid: %d): %d", mid, granted_qos[0]);
-    log(6, "Subscribed (mid: %d): %d", mid, granted_qos[0]);
+    printf("Subscribed (mid: %d): %d %d", mid, granted_qos[0], qos_count);
+    log(6, "Subscribed (mid: %d): %d %d", mid, granted_qos[0], qos_count);
     for(i=1; i<qos_count; i++){
         printf(", %d", granted_qos[i]);
         log(6, ", %d", granted_qos[i]);
@@ -149,9 +152,9 @@ void cloud_message_callback(struct mosquitto *mosq, void *userdata, const struct
         //log(0,"recv %s: ", (char *)message->payload);
         std::string data = static_cast<char*>(message->payload);
         //放入本地处理队列，由本地线程处理 
-        string::size_type idx;
+        //string::size_type idx;
         //订阅的时候已经加上mac了，所以这里再判断一次可以不需要
-        if(strstr(message->topic, MAC.c_str()) != NULL)//在a中查找b，如果不存在，这是C语言风格
+        //if(strstr(message->topic, MAC.c_str()) != NULL)//在a中查找b，如果不存在，这是C语言风格
         {
             local_q.push(data);
         }

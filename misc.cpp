@@ -42,7 +42,7 @@ string randomstring(int n)
   {
     ran=ran + letters[rand() % MAX_SIZE];
   }
-  cout << ran << endl;
+  //cout << ran << endl;
   return ran;
 }
 

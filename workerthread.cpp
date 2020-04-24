@@ -16,7 +16,7 @@ int setup()
     //"cmd/IotApp/fa:04:39:46:16:2b/+/+/+/#"
     //string CMD = "cmd/IotApp/";
     CCMD = CCMD + MAC +"/+/+/+/#";
-    cout << "云端cmd topic" << CCMD << endl;
+    cout << "云端cmd topic：" << CCMD << endl;
     //cmd_resp/:ProductName/:DeviceName/:CommandName/:RequestID/:MessageID
     CRSP = CRSP + MAC +"/";
     //2. 建立处理云端数据线程cmd
@@ -43,8 +43,8 @@ int cloudThread()
 
             data = local_q.pop();
             //转换为本地json格式
-            ldata = parseCloud(data);
-            ret = mqtt_send(mosq_l, LCMD, ldata.c_str());
+            //ldata = parseCloud(data);
+            ret = mqtt_send(mosq_l, LCMD, data.c_str());
             if(ret != 0)
             {
                 log(4, "mqtt_send error=%i\n", ret);
@@ -108,7 +108,7 @@ int localRspThread()
         {
             //cmd_resp/:ProductName/:DeviceName/:CommandName/:RequestID/:MessageID
             topic = CRSP+randomstring(26)+"/"+randomstring(10);
-            cout << topic << endl;
+            //cout << topic << endl;
             data = cloud_rsp_q.pop();
             ret = mqtt_send(mosq_c, topic,data.c_str());
             if(ret != 0)

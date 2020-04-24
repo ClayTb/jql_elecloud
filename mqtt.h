@@ -23,7 +23,7 @@ extern struct mosquitto *mosq_c, *mosq_l;
 extern int connected_c, connected_l;
 
 
-extern string CCMD, CSTATE,CRSP;
+extern string CCMD, CSTATE, CRSP;
 extern const char* LCMD;
 int mqtt_send(struct mosquitto *mosq, string topic, const char *msg);
 
