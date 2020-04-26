@@ -149,7 +149,7 @@ void cloud_message_callback(struct mosquitto *mosq, void *userdata, const struct
     if(message->payloadlen){
         //printf("topic: %s, payload: %s\n", message->topic, (char *)message->payload);
         //放入队列   
-        //log(0,"recv %s: ", (char *)message->payload);
+        log(6,"recv %s: ", (char *)message->payload);
         std::string data = static_cast<char*>(message->payload);
         //放入本地处理队列，由本地线程处理 
         //string::size_type idx;

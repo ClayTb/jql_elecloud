@@ -111,6 +111,7 @@ int localRspThread()
             //cout << topic << endl;
             data = cloud_rsp_q.pop();
             ret = mqtt_send(mosq_c, topic,data.c_str());
+            log(6, "%s : %s", topic.c_str(),data.c_str());
             if(ret != 0)
             {
                 log(4, "mqtt_send error=%i\n", ret);
