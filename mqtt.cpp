@@ -147,7 +147,7 @@ int connected_c = 0;
 void cloud_message_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
 {
     if(message->payloadlen){
-        //printf("topic: %s, payload: %s\n", message->topic, (char *)message->payload);
+        printf("cloud topic: %s, payload: %s\n", message->topic, (char *)message->payload);
         //放入队列   
         log(6,"recv %s: ", (char *)message->payload);
         std::string data = static_cast<char*>(message->payload);
