@@ -13,6 +13,7 @@ int localThread();
 
 extern Queue<string> cloud_state_q, cloud_rsp_q;
 extern Queue<string> local_q;
+extern string cloud_state;
 
 
 extern std::map<string, string> topic;

@@ -53,6 +53,7 @@ int connected_l = 0;
 const char* LCMD = "/cti/ele/cmd";
 const char* LRSP = "/cti/ele/cmd-rsp";
 const char* LSTATE = "/cti/ele/state";
+string cloud_state;
 
 void local_callback(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message)
 {
@@ -64,7 +65,9 @@ void local_callback(struct mosquitto *mosq, void *userdata, const struct mosquit
         //放入云端队列，由云端线程处理 
         if(strcmp(message->topic, LSTATE) == 0)
         {
-            cloud_state_q.push(data);
+            //cloud_state_q.push(data);
+            //不压入队列，永远发送最新的状态
+            cloud_state = data;
         }
         else if(strcmp(message->topic, LRSP) == 0)
         {

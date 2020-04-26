@@ -72,11 +72,14 @@ int localStateThread()
     //数据pop出来，转换成云端数据
     while(1) 
     {                       
-        if(connected_c == 1 && !cloud_state_q.queue_.empty())
+        //if(connected_c == 1 && !cloud_state_q.queue_.empty())
+        if(connected_c == 1)
         {
-            data = cloud_state_q.pop();
+            //data = cloud_state_q.pop();
+            data = cloud_state;
             topic = "upload_data/IotApp/"+MAC+"/sample/"+randomstring(26);
             ret = mqtt_send(mosq_c, topic,data.c_str());
+            //cout << topic << ": " << data << endl;
             if(ret != 0)
             {
                 log(4, "mqtt_send error=%i\n", ret);
@@ -86,7 +89,9 @@ int localStateThread()
         {
             std::this_thread::sleep_for(chrono::milliseconds(10)); 
             //sleep(1);
-        }            
+        }     
+        //定时300ms发送       
+        std::this_thread::sleep_for(chrono::milliseconds(300)); 
 
     }
     return 0;
