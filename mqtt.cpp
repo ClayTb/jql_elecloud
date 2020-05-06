@@ -60,8 +60,9 @@ void local_callback(struct mosquitto *mosq, void *userdata, const struct mosquit
 	if(message->payloadlen){
         //printf("topic: %s, payload: %s", message->topic, (char *)message->payload);
         //放入队列   
-        //log(0,"recv %s: ", (char *)message->payload);
-        std::string data = static_cast<char*>(message->payload);
+        //log(6,"recv %s: ", (char *)message->payload);
+        std::string data = (char*)(message->payload);
+        //std::string data = static_cast<char*>(message->payload);
         //放入云端队列，由云端线程处理 
         if(strcmp(message->topic, LSTATE) == 0)
         {
@@ -155,12 +156,8 @@ void cloud_message_callback(struct mosquitto *mosq, void *userdata, const struct
         log(6,"recv %s: ", (char *)message->payload);
         std::string data = static_cast<char*>(message->payload);
         //放入本地处理队列，由本地线程处理 
-        //string::size_type idx;
-        //订阅的时候已经加上mac了，所以这里再判断一次可以不需要
-        //if(strstr(message->topic, MAC.c_str()) != NULL)//在a中查找b，如果不存在，这是C语言风格
-        {
-            local_q.push(data);
-        }
+  //收到就存起来，在另外的地方解析，不影响这里的回调效率
+        local_q.push(data);            
 
     }else{
         log(4, "message %s (null)\n", message->topic);
@@ -205,6 +202,7 @@ void mqtt_setup_cloud()
     log(6,"set up cloud mqtt");
     //云端IP
 	string host = "49.233.183.83";
+	//string host = "localhost";
 	int port = 1883;
 	int keepalive = 60;
 	bool clean_session = true;

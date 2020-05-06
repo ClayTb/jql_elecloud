@@ -14,6 +14,6 @@ int localStateThread();
 int localRspThread();
 int cloudThread();
 int setup();
-string parseCloud(string data);
+bool parseCloud(string data);
 
 #endif

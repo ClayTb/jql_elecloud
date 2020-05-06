@@ -2,12 +2,17 @@
 #define _LOG_H
 #include <iostream>
 #include <string>
+#include <jsoncpp/json/json.h>
+
+using namespace std;  
 void log(int level, const char *format...);
 std::string getMac();
 std::string randomstring(int n);
 int macOK(std::string a);
 std::string exec(const char* cmd);
 void init_signals(void);
+bool isNum(string str);  
+
 
 #include <queue>
 #include <thread>
@@ -60,4 +65,6 @@ class Queue
   std::mutex mutex_;
   std::condition_variable cond_;
 };
+
+
 #endif

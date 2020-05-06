@@ -42,12 +42,18 @@ int cloudThread()
         {
 
             data = local_q.pop();
-            //转换为本地json格式
-            //ldata = parseCloud(data);
-            ret = mqtt_send(mosq_l, LCMD, data.c_str());
-            if(ret != 0)
+            //先解析一下，再发给本地梯控
+            if(parseCloud(data))
             {
-                log(4, "mqtt_send error=%i\n", ret);
+                ret = mqtt_send(mosq_l, LCMD, data.c_str());
+                if(ret != 0)
+                {
+                    log(4, "mqtt_send error=%i\n", ret);
+                }
+            }
+            else
+            {
+                log(4, "云端数据出错");
             }
         }
         else
@@ -132,10 +138,63 @@ int localRspThread()
     return 0;
 }
 
+/*
+{"ID":"", "requestID":"", "cmd":"call", "floorNum":""}
+{"ID":"", "requestID":"", "cmd":"close", "duration":""}
+{"ID":"", "requestID":"", "cmd":"open", "duration":""}
+{"ID":"", "requestID":"", "cmd":"cancelclose"}
+{"ID":"", "requestID":"", "cmd":"cancelopen"}
+*/
 //将cloud的数据变成本地的json数据
-string parseCloud(string data)
+bool parseCloud(string data)
 {
-    return NULL;
+    //{"ID":"8888", "requestID":"6666", "cmd":"open", "duration":"undefined"}
+    //防止出现这样的问题
+    Json::Value mcu;
+    Json::Reader reader;
+    Json::Value value;
+    int duration = 0;
+    bool err = false;
+    Json::Value rsp;
+    if(!reader.parse(data, value))
+    {  
+        return false; 
+    }
+    if(value["cmd"].isNull())
+    {
+        return false;
+    }
+    //操作电梯指令
+    string cmd = value["cmd"].asString();
+    if(cmd.compare("call") == 0)
+    {
+        
+    }
+    else if(cmd.compare("close") == 0 || cmd.compare("open") == 0)
+    {
+        if(value["duration"].isNull())
+        {
+            return false;
+        }
+        string duration = value["duration"].asString();
+        if(!isNum(duration))
+        {
+            return false;
+        }
+    }
+    else if(cmd.compare("cancelopen") == 0)
+    {
+
+    }
+    else if(cmd.compare("cancelclose") == 0)
+    {
+
+    }
+    else
+    {
+        return false;
+    }
+    return true;
 }
 
 #if 0

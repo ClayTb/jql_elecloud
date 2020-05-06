@@ -212,3 +212,22 @@ init_signals(void)
     }
     
 }
+
+#include <iostream>
+#include <sstream>  
+
+bool isNum(string str)  
+{  
+    stringstream sin(str);  
+    double d;  
+    char c;  
+    if(!(sin >> d))  
+    {
+        return false;
+    }
+    if (sin >> c) 
+    {
+        return false;
+    }  
+    return true;  
+}
