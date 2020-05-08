@@ -48,7 +48,7 @@ int cloudThread()
                 ret = mqtt_send(mosq_l, LCMD, data.c_str());
                 if(ret != 0)
                 {
-                    log(4, "mqtt_send error=%i\n", ret);
+                    log(4, "mqtt_send local error=%i\n", ret);
                 }
             }
             else
@@ -88,7 +88,7 @@ int localStateThread()
             //cout << topic << ": " << data << endl;
             if(ret != 0)
             {
-                log(4, "mqtt_send error=%i\n", ret);
+                log(4, "mqtt_send cloud state error=%i\n", ret);
             }             
         }
         else
@@ -125,7 +125,7 @@ int localRspThread()
             log(6, "%s : %s", topic.c_str(),data.c_str());
             if(ret != 0)
             {
-                log(4, "mqtt_send error=%i\n", ret);
+                log(4, "mqtt_send cloud rsp error=%i\n", ret);
             }             
         }
         else

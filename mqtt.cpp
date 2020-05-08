@@ -184,9 +184,11 @@ void cloud_connect_callback(struct mosquitto *mosq, void *userdata, int result)
         //这里订阅本地的cmd命令，2的意思Qos，0 表示This is the fastest method and requires only 1 message. 
         //It is also the most unreliable transfer mode.
         //订阅云端命令
+		connected_c = 1;
         mosquitto_subscribe(mosq, NULL, CCMD.c_str(), 0);
     }else{
         fprintf(stderr, "cloud Connect failed\n");
+		connected_c = 0;
        
 //MOSQ_ERR_SUCCESS    on success.
 //MOSQ_ERR_INVAL  if the input parameters were invalid.
@@ -236,7 +238,7 @@ void mqtt_setup_cloud()
 		//exit(1);
         //
 	}
-    connected_c = 1;
+    //connected_c = 1;
     int loop = mosquitto_loop_start(mosq_c);
     if(loop != MOSQ_ERR_SUCCESS){
         fprintf(stderr, "Unable to start loop: %i\n", loop);
