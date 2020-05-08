@@ -92,6 +92,9 @@ void local_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
 	int i;
 	if(!result){
+        printf("local connected success\n");
+        log(4, "local connected success");
+        connected_l = 1;
 		//mosquitto_subscribe(mosq, NULL, "$SYS/#", 2);
         //这里订阅本地的cmd命令，2的意思Qos，0 表示This is the fastest method and requires only 1 message. 
         //It is also the most unreliable transfer mode.
@@ -131,10 +134,10 @@ void mqtt_setup_local()
     if(mosquitto_connect(mosq_l, host.c_str(), port, keepalive)){
 		fprintf(stderr, "Unable to connect local.\n");
         log(3,"Unable to connect local.");
-		exit(2);
+		//exit(2);
 	}
     //已经连接上的全局变量
-    connected_l = 1;
+    //connected_l = 1;
     int loop = mosquitto_loop_start(mosq_l);
     if(loop != MOSQ_ERR_SUCCESS){
         fprintf(stderr, "Unable to start loop in local: %i\n", loop);
@@ -180,6 +183,8 @@ string CRSP = "cmd_resp/IotApp/";
 void cloud_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {
     if(!result){
+        printf("cloud connected success\n");
+        log(4, "cloud connected success");
         //mosquitto_subscribe(mosq, NULL, "$SYS/#", 2);
         //这里订阅本地的cmd命令，2的意思Qos，0 表示This is the fastest method and requires only 1 message. 
         //It is also the most unreliable transfer mode.

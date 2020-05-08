@@ -37,8 +37,9 @@ int cloudThread()
     string data, ldata;
     int ret = -1;
     while(1) 
-    {                       
-        if(connected_l == 1 && !local_q.queue_.empty())
+    {      
+        //无论本地是否已经连接，都pop出来命令
+        if(!local_q.queue_.empty())
         {
 
             data = local_q.pop();
@@ -48,6 +49,7 @@ int cloudThread()
                 ret = mqtt_send(mosq_l, LCMD, data.c_str());
                 if(ret != 0)
                 {
+                    //如果本地没有连接，这里也会报错
                     log(4, "mqtt_send local error=%i\n", ret);
                 }
             }
@@ -79,6 +81,7 @@ int localStateThread()
     while(1) 
     {                       
         //if(connected_c == 1 && !cloud_state_q.queue_.empty())
+        //发送给云端这里要判断是否有连接，要不然mqtt_send会一直报错
         if(connected_c == 1)
         {
             //data = cloud_state_q.pop();
