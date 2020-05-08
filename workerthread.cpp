@@ -89,6 +89,7 @@ int localStateThread()
             if(ret != 0)
             {
                 log(4, "mqtt_send cloud state error=%i\n", ret);
+				connected_c = 0;
             }             
         }
         else
