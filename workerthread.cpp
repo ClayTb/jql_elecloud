@@ -99,9 +99,13 @@ int localStateThread()
         {
             std::this_thread::sleep_for(chrono::milliseconds(10)); 
             //sleep(1);
-        }     
+        }    
+        //这里去检测是否到了目的楼层，然后自动开门10s
+        autoOpen(cloud_state); 
         //定时300ms发送       
         std::this_thread::sleep_for(chrono::milliseconds(300)); 
+        
+
 
     }
     return 0;
@@ -172,7 +176,9 @@ bool parseCloud(string data)
     string cmd = value["cmd"].asString();
     if(cmd.compare("call") == 0)
     {
-        
+        //登记呼梯楼层，到达后自动开门10秒，做到config里
+        string floor = value["floorNum"].asString();
+        registerFloor(floor);
     }
     else if(cmd.compare("close") == 0 || cmd.compare("open") == 0)
     {
@@ -200,6 +206,55 @@ bool parseCloud(string data)
     }
     return true;
 }
+
+string floor = "unknown";
+string door = "unknown";
+string regFloor = "unknown"
+bool REGISTERED = false;
+
+void autoOpen(string state)
+{
+    Json::Value mcu;
+    Json::Reader reader;
+    Json::Value value;
+    bool err = false;
+    if(reader.parse(state, value))
+    {       
+        /*
+        {
+           "ID" : "00101",
+           "door" : "closed", / "opened"
+           "floorNum" : "6",
+           "floorNum_r" : "30",
+           "state" : "stop",
+           "timestamp" : "1583737040199e"
+        }
+        */
+        string floor = value["floorNum_r"].asString();
+        string door = value["door"].asString();
+        //楼层已经到达，并且已经呼梯了，并且门已经在打开的情况下，自动开门10s一次
+        if(floor == regFloor && REGISTERED == true && door == "opened")
+        {
+            mqtt_send(autoOpen);
+            string data = '{"ID":"00000", "sender":"autoOpen","requestID":'+randomstring(10) + ',"timestamp":'+ getTimeStamp() +',"cmd":"open", "duration":"10"}';
+            cout << data << endl;
+            int ret = mqtt_send(mosq_l, LCMD, data.c_str());
+            if(ret != 0)
+            {
+                //如果本地没有连接，这里也会报错
+                log(4, "mqtt_send local autoOpen error=%i\n", ret);
+            }
+            REGISTERED == false;
+        }
+}
+
+void  registerFloor(string floor)
+{
+    regFloor = floor;
+    REGISTERED = true;
+}
+
+
 
 #if 0
 int reportErr(Json::Value rsp)

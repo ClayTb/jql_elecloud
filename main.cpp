@@ -17,7 +17,8 @@ int main(void)
 {
     /* Init the signals to catch chld/quit/etc */
     init_signals();
-    log(6, "tk cloud version V1.0 2020-5-8-15:16\n");
+    log(6, "tk cloud version V1.0 2020-5-15-11:16\n");
+    printf("tk cloud version V1.0 2020-5-15-11:16\n");
 
 //初始化程序
     if(setup() != 0)
