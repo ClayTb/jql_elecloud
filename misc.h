@@ -12,6 +12,7 @@ int macOK(std::string a);
 std::string exec(const char* cmd);
 void init_signals(void);
 bool isNum(string str);  
+string getTimeStamp();
 
 
 #include <queue>

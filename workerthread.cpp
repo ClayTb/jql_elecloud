@@ -67,7 +67,9 @@ int cloudThread()
     return 1;
 }
 
-
+int REGISTERED = 0;
+/*0：未呼梯 1：已经呼梯 2：已经自动开门，当已经开门，但是检测到楼层已经过了，就取消开门，要不然电梯在运行的时候开门键一直按着
+*/
 //发送电梯状态线程
 int localStateThread()
 {
@@ -101,7 +103,15 @@ int localStateThread()
             //sleep(1);
         }    
         //这里去检测是否到了目的楼层，然后自动开门10s
-        autoOpen(cloud_state); 
+        if(REGISTERED == 1)
+        {
+            autoOpen(cloud_state); 
+        }
+        //自动开门之后，不断去检测现在电梯状态
+        //else if(2 == REGISTERED)
+        //{
+        //    cancelAuto(cloud_state);
+        //}
         //定时300ms发送       
         std::this_thread::sleep_for(chrono::milliseconds(300)); 
         
@@ -112,7 +122,6 @@ int localStateThread()
 }
 
 //发送电梯回复指令线程
-
 int localRspThread()
 {
 	//数据pop出来
@@ -176,8 +185,12 @@ bool parseCloud(string data)
     string cmd = value["cmd"].asString();
     if(cmd.compare("call") == 0)
     {
+        if(value["floorNum_r"].isNull())
+        {
+            return false;
+        }
         //登记呼梯楼层，到达后自动开门10秒，做到config里
-        string floor = value["floorNum"].asString();
+        string floor = value["floorNum_r"].asString();
         registerFloor(floor);
     }
     else if(cmd.compare("close") == 0 || cmd.compare("open") == 0)
@@ -209,8 +222,8 @@ bool parseCloud(string data)
 
 string floor = "unknown";
 string door = "unknown";
-string regFloor = "unknown"
-bool REGISTERED = false;
+string regFloor = "unknown";
+
 
 void autoOpen(string state)
 {
@@ -232,11 +245,13 @@ void autoOpen(string state)
         */
         string floor = value["floorNum_r"].asString();
         string door = value["door"].asString();
+        string state = value["state"].asString();
         //楼层已经到达，并且已经呼梯了，并且门已经在打开的情况下，自动开门10s一次
-        if(floor == regFloor && REGISTERED == true && door == "opened")
+        if(floor == regFloor && REGISTERED == 1 && door == "opened")
         {
-            mqtt_send(autoOpen);
-            string data = '{"ID":"00000", "sender":"autoOpen","requestID":'+randomstring(10) + ',"timestamp":'+ getTimeStamp() +',"cmd":"open", "duration":"10"}';
+            string temp = "{\"ID\":\"00000\", \"sender\":\"autoOpen\",\"requestID\":";
+            string data =  temp + '"' + randomstring(10) + '"' + ",\"timestamp\":" + '"' + getTimeStamp() + '"'+",\"cmd\":\"open\", \"duration\":\"10\"}";
+            //string data = '{"ID":"00000", "sender":"autoOpen","requestID":'+ '"' + randomstring(10) + '"' + ',"timestamp":' + '"' + getTimeStamp() + '"' + ',"cmd":"open", "duration":"10"}';
             cout << data << endl;
             int ret = mqtt_send(mosq_l, LCMD, data.c_str());
             if(ret != 0)
@@ -244,14 +259,61 @@ void autoOpen(string state)
                 //如果本地没有连接，这里也会报错
                 log(4, "mqtt_send local autoOpen error=%i\n", ret);
             }
-            REGISTERED == false;
+            //这时候状态转
+            REGISTERED = 0;
         }
+    }
+}
+
+void cancelAuto(string state)
+{
+    Json::Value mcu;
+    Json::Reader reader;
+    Json::Value value;
+    bool err = false;
+    if(reader.parse(state, value))
+    {       
+        /*
+        {
+           "ID" : "00101",
+           "door" : "closed", / "opened"
+           "floorNum" : "6",
+           "floorNum_r" : "30",
+           "state" : "stop",
+           "timestamp" : "1583737040199e"
+        }
+        */
+        string floor = value["floorNum_r"].asString();
+        string door = value["door"].asString();
+        string state = value["state"].asString();
+      
+        //如果这时候已经按了开门键，但是楼层已经不是目的楼层了，就需要释放开门键
+        if(2 == REGISTERED)
+        {
+            if(floor != regFloor || door == "closed" || state != "stop")
+            {
+                //释放开门键
+                string temp = "{\"ID\":\"00000\", \"sender\":\"autoOpen\",\"requestID\":";
+                string data =  temp + '"' + randomstring(10) + '"' + ",\"timestamp\":" + '"' + getTimeStamp() + '"'+",\"cmd\":\"cancelopen\"}";
+                //string data = '{"ID":"00000", "sender":"autoOpen","requestID":'+ '"' + randomstring(10) + '"' + ',"timestamp":' + '"' + getTimeStamp() + '"' + ',"cmd":"open", "duration":"10"}';
+                cout << data << endl;
+                int ret = mqtt_send(mosq_l, LCMD, data.c_str());
+                if(ret != 0)
+                {
+                    //如果本地没有连接，这里也会报错
+                    log(4, "mqtt_send local autoOpen cancelopen error=%i\n", ret);
+                }
+                REGISTERED = 0;
+            }           
+        }
+    }
 }
 
 void  registerFloor(string floor)
 {
+    cout << "register " << floor << endl;
     regFloor = floor;
-    REGISTERED = true;
+    REGISTERED = 1;
 }
 
 

@@ -11,7 +11,7 @@
 #include <thread>
 #include "workerthread.h"
 
-using namespace std;
+//using namespace std;
 
 int main(void)
 {

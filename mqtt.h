@@ -1,7 +1,7 @@
 #ifndef _MQTT_H
 #define _MQTT_H
 
-#include <map>
+//#include <map>
 #include <string>
 #include "misc.h"
 #include <mosquitto.h>

@@ -82,11 +82,11 @@ void local_callback(struct mosquitto *mosq, void *userdata, const struct mosquit
 }
 
 //这里去订阅楼层信息
-std::map<string, string> topic = {
+/*std::map<string, string> topic = {
     { "state", "/cti/ele/state" },
     { "response", "/cti/ele/cmd-rsp" },
     { "cmd", "/cti/ele/cmd" }, 
-};
+};*/
 
 void local_connect_callback(struct mosquitto *mosq, void *userdata, int result)
 {

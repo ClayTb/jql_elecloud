@@ -15,8 +15,8 @@ int localRspThread();
 int cloudThread();
 int setup();
 bool parseCloud(string data);
-bool registerFloor(string floor);
-void autoOpen(string state)
+void registerFloor(string floor);
+void autoOpen(string state);
 
 
 #endif
