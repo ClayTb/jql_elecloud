@@ -17,6 +17,6 @@ int setup();
 bool parseCloud(string data);
 void registerFloor(string floor);
 void autoOpen(string state);
-
+int readConfigThread(void);
 
 #endif

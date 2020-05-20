@@ -25,6 +25,8 @@ int setup()
     thread (localStateThread).detach();
 	//处理消耗cmd rsp消息，发给云端
     thread (localRspThread).detach();
+    //检测config有没有被改动的线程
+    thread (readConfigThread).detach();
     return 0;
 }
 
@@ -250,7 +252,8 @@ void autoOpen(string state)
         if(floor == regFloor && REGISTERED == 1 && door == "opened")
         {
             string temp = "{\"ID\":\"00000\", \"sender\":\"autoOpen\",\"requestID\":";
-            string data =  temp + '"' + randomstring(10) + '"' + ",\"timestamp\":" + '"' + getTimeStamp() + '"'+",\"cmd\":\"open\", \"duration\":\"10\"}";
+            //string data =  temp + '"' + randomstring(10) + '"' + ",\"timestamp\":" + '"' + getTimeStamp() + '"' + ",\"cmd\":\"open\", \"duration\":" + '"' + autoTime + '"}';
+            string data =  temp + '"' + randomstring(10) + '"' + ",\"timestamp\":" + '"' + getTimeStamp() + '"' + ",\"cmd\":\"open\", \"duration\":" + '"' + autoTime + "\"}";
             //string data = '{"ID":"00000", "sender":"autoOpen","requestID":'+ '"' + randomstring(10) + '"' + ',"timestamp":' + '"' + getTimeStamp() + '"' + ',"cmd":"open", "duration":"10"}';
             cout << data << endl;
             int ret = mqtt_send(mosq_l, LCMD, data.c_str());
@@ -314,6 +317,37 @@ void  registerFloor(string floor)
     cout << "register " << floor << endl;
     regFloor = floor;
     REGISTERED = 1;
+}
+
+
+//增加实时读取config
+int readConfigThread(void)
+{
+    struct stat file_stat;
+    int err;
+    time_t   mtime_now, mtime_pre;
+    cout << "readConfigThread beigin" << endl;
+    //这里使用文件修改时间参数
+    while(1)
+    {
+        err = stat("/home/tikong/production/config.ini", &file_stat);
+        if(err != 0)
+        {
+            perror("stat");
+            log(3,"stat error");   
+            return 1;
+        }
+        mtime_now = file_stat.st_mtime;
+        if(mtime_now != mtime_pre)
+        {
+            printf("file changed, reload\n");
+            log(4, "file changed, reload\n");
+            mtime_pre = mtime_now;
+            readAuto();
+        }
+        std::this_thread::sleep_for(chrono::seconds(3));
+    }
+  return 0;
 }
 
 

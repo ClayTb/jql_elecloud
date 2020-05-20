@@ -67,5 +67,16 @@ class Queue
   std::condition_variable cond_;
 };
 
+extern string autoTime;
+
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+int readAuto();
+
 
 #endif
