@@ -14,3 +14,6 @@ mosquitto_pub -t cmd/IotApp/de:5b:dc:93:ec:79/ping/plain/5ea2b243b3098dd6a9d34d5
 
 2. 增加读取config接口，读取AUTO_OPEN，
     并且config文件有变化，重新读取   
+
+2020-5-22:  
+1. 增加OTA功能  

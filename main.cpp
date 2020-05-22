@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <thread>
 #include "workerthread.h"
+#include "ota.h"
 
 //using namespace std;
 
@@ -17,8 +18,8 @@ int main(void)
 {
     /* Init the signals to catch chld/quit/etc */
     init_signals();
-    log(6, "tk cloud version V1.0 2020-5-19-14:58\n");
-    printf("tk cloud version V1.0 2020-5-15-14:58\n");
+    log(6, "tk cloud version V2.0 2020-5-22-10:27\n");
+    printf("tk cloud version V2.0 2020-5-22-10:27\n");
 
 //初始化程序
     if(setup() != 0)
@@ -31,6 +32,8 @@ int main(void)
     mqtt_setup_cloud();
     //初始化本地mqtt，订阅楼层信息以及梯控的回复转发到云端
     mqtt_setup_local();
+    //OTA 线程
+    thread (otaThread).detach();
 
 
     while(1){
